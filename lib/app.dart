@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:task_manager_flutter/ui/screens/add_new_task_screen.dart';
 import 'package:task_manager_flutter/ui/screens/forgot_password_verify_email_screen.dart';
 import 'package:task_manager_flutter/ui/screens/forgot_password_verify_otp_screen.dart';
 import 'package:task_manager_flutter/ui/screens/main_bottom_nav_screen.dart';
@@ -6,6 +7,7 @@ import 'package:task_manager_flutter/ui/screens/reset_password_screen.dart';
 import 'package:task_manager_flutter/ui/screens/sign_in_screen.dart';
 import 'package:task_manager_flutter/ui/screens/sign_up_screen.dart';
 import 'package:task_manager_flutter/ui/screens/splash_screen.dart';
+import 'package:task_manager_flutter/ui/screens/update_profile_screen.dart';
 import 'package:task_manager_flutter/ui/utils/app_color.dart';
 
 class TaskManagerApp extends StatelessWidget {
@@ -73,6 +75,10 @@ class TaskManagerApp extends StatelessWidget {
           widget = const ResetPasswordScreen();
         } else if (settings.name == MainBottomNavScreen.name) {
           widget = const MainBottomNavScreen();
+        } else if (settings.name == AddNewTaskScreen.name) {
+          widget = const AddNewTaskScreen();
+        } else if (settings.name == UpdateProfileScreen.name) {
+          widget = const UpdateProfileScreen();
         }
         return MaterialPageRoute(builder: (ctx) => widget);
       },
