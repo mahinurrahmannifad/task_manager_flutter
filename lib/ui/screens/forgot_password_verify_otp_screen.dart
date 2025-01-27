@@ -1,11 +1,9 @@
-import 'package:flutter/gestures.dart';
+
 import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:task_manager_flutter/data/services/network_caller.dart';
 import 'package:task_manager_flutter/data/utils/urls.dart';
 import 'package:task_manager_flutter/ui/screens/reset_password_screen.dart';
-import 'package:task_manager_flutter/ui/screens/sign_in_screen.dart';
-import 'package:task_manager_flutter/ui/utils/app_color.dart';
 import 'package:task_manager_flutter/ui/widgets/screen_background.dart';
 import 'package:task_manager_flutter/ui/widgets/snack_bar_message.dart';
 
@@ -34,36 +32,63 @@ class _ForgotPasswordVerifyOtpScreenState
       body: ScreenBackground(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 80),
-                  Text('PIN Verification', style: textTheme.titleLarge),
-                  const SizedBox(height: 4),
-                  Text(
-                    'A 6 digits of OTP has been sent to your email address',
-                    style: textTheme.titleSmall,
-                  ),
-                  const SizedBox(height: 24),
-                  _buildPinCodeTextField(),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        _getOtpVerify();
-                      }
-                    },
-                    child: const Icon(Icons.arrow_circle_right_outlined),
-                  ),
-                  const SizedBox(height: 48),
-                  Center(
-                    child: _buildSignInSection(),
-                  )
-                ],
-              ),
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 100),
+                Text(
+                  'Pin Verification',
+                  style: textTheme.titleLarge,
+                ),
+                const SizedBox(
+                  height: 6,
+                ),
+                Text(
+                  'A 6 digits of OTP has been sent to your email address',
+                  style: textTheme.titleMedium,
+                ),
+                const SizedBox(height: 24),
+                Form(
+                    key: _formKey,
+                    child: PinCodeTextField(
+                      validator: (String? value) {
+                        if (value == null ||
+                            value.trim().isEmpty ||
+                            value.length != 6) {
+                          return 'Enter a valid OTP number';
+                        }
+                        return null;
+                      },
+                      keyboardType: TextInputType.number,
+                      length: 6,
+                      obscureText: false,
+                      animationType: AnimationType.fade,
+                      pinTheme: PinTheme(
+                        shape: PinCodeFieldShape.box,
+                        borderRadius: BorderRadius.circular(5),
+                        fieldHeight: 50,
+                        fieldWidth: 40,
+                        activeFillColor: Colors.white,
+                        selectedFillColor: Colors.white,
+                        inactiveFillColor: Colors.white,
+                      ),
+                      animationDuration: const Duration(milliseconds: 300),
+                      backgroundColor: Colors.transparent,
+                      enableActiveFill: true,
+                      controller: _otpTEController,
+                      appContext: context,
+                    )
+                ),
+                const SizedBox(height: 12,),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      _getPinVerify();
+                    }
+                  },
+                  child: const Icon(Icons.arrow_circle_right_outlined),
+                ),
+              ],
             ),
           ),
         ),
@@ -71,52 +96,8 @@ class _ForgotPasswordVerifyOtpScreenState
     );
   }
 
-  Widget _buildPinCodeTextField() {
-    return PinCodeTextField(
-      length: 6,
-      animationType: AnimationType.fade,
-      keyboardType: TextInputType.number,
-      pinTheme: PinTheme(
-        shape: PinCodeFieldShape.box,
-        borderRadius: BorderRadius.circular(5),
-        fieldHeight: 50,
-        fieldWidth: 50,
-        activeFillColor: Colors.white,
-        selectedFillColor: Colors.white,
-        inactiveFillColor: Colors.white,
-      ),
-      animationDuration: const Duration(milliseconds: 300),
-      backgroundColor: Colors.transparent,
-      enableActiveFill: true,
-      controller: _otpTEController,
-      appContext: context,
-    );
-  }
-
-  Widget _buildSignInSection() {
-    return RichText(
-      text: TextSpan(
-        text: "Have an account? ",
-        style:
-            const TextStyle(color: Colors.black54, fontWeight: FontWeight.w600),
-        children: [
-          TextSpan(
-            text: 'Sign in',
-            style: const TextStyle(
-              color: AppColors.themeColor,
-            ),
-            recognizer: TapGestureRecognizer()
-              ..onTap = () {
-                Navigator.pushNamedAndRemoveUntil(
-                    context, SignInScreen.name, (value) => false);
-              },
-          )
-        ],
-      ),
-    );
-  }
-
-  Future<void> _getOtpVerify() async {
+  Future<void> _getPinVerify() async {
+    // API Call
     NetworkResponse response = await NetworkCaller.getRequest(
         url: Urls.recoverVerifyOTPlUrl(widget.email, _otpTEController.text));
 
@@ -126,7 +107,7 @@ class _ForgotPasswordVerifyOtpScreenState
           arguments: {'otp': _otpTEController.text, 'email': widget.email},
           ResetPasswordScreen.name);
     } else {
-      showSnackBarMessage(context, 'Invalid OTP');
+     showSnackBarMessage(context, 'Invalid OTP');
     }
   }
 

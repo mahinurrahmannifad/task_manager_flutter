@@ -30,57 +30,83 @@ class _ResetPasswordScreen extends State<ResetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
-
     return Scaffold(
       body: ScreenBackground(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _forKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 80),
-                  Text('Set Password', style: textTheme.titleLarge),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Minimum length of password should be more than 8 letters.',
-                    style: textTheme.titleSmall,
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 100),
+                Text(
+                  'Set Password',
+                  style: textTheme.titleLarge,
+                ),
+                const SizedBox(
+                  height: 6,
+                ),
+                Text(
+                  'Minimum length password 8 character with Letter and number combination',
+                  style: textTheme.titleMedium,
+                ),
+                const SizedBox(height: 24),
+                Form(
+                  key: _forKey,
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        validator: (String? value) {
+                          if (value?.trim().isEmpty ?? true) {
+                            return 'Enter a password';
+                          }
+                          return null;
+                        },
+                        keyboardType: TextInputType.visiblePassword,
+                        controller: _newPasswordTEController,
+                        decoration: const InputDecoration(hintText: 'Password'),
+                      ),
+                      const SizedBox(
+                        height: 8,
+                      ),
+                      TextFormField(
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        validator: (String? value) {
+                          if (value?.trim().isEmpty ?? true) {
+                            return 'Enter a password';
+                          }
+                          return null;
+                        },
+                        keyboardType: TextInputType.visiblePassword,
+                        controller: _confirmPasswordTEController,
+                        decoration:
+                            const InputDecoration(hintText: 'Confirm Password'),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 24),
-                  TextFormField(
-                    controller: _newPasswordTEController,
-                    decoration: const InputDecoration(hintText: 'New Password'),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _confirmPasswordTEController,
-                    decoration:
-                        const InputDecoration(hintText: 'Confirm New Password'),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
+                ),
+                const SizedBox(height: 12),
+                ElevatedButton(
                     onPressed: () {
                       if (_forKey.currentState!.validate() &&
                           _newPasswordTEController.text ==
                               _confirmPasswordTEController.text) {
-                        _resetPassword();
+                        _postResetPassword();
                       } else {
-                        showSnackBarMessage(context, 'Password do not match');
+                        showSnackBarMessage(context, 'Password not matched');
                       }
                     },
-                    child: const Text(
-                      'Confirm',
-                      style: TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                  const SizedBox(height: 48),
-                  Center(
-                    child: _buildSignInSection(),
-                  )
-                ],
-              ),
+                    child: const Text('Confirm')),
+                const SizedBox(
+                  height: 20,
+                ),
+                const SizedBox(
+                  height: 6,
+                ),
+                Center(child: buildRichText())
+              ],
             ),
           ),
         ),
@@ -88,30 +114,33 @@ class _ResetPasswordScreen extends State<ResetPasswordScreen> {
     );
   }
 
-  Widget _buildSignInSection() {
+  Widget buildRichText() {
     return RichText(
       text: TextSpan(
-        text: "Have an account? ",
-        style:
-            const TextStyle(color: Colors.black54, fontWeight: FontWeight.w600),
-        children: [
-          TextSpan(
-            text: 'Sign in',
-            style: const TextStyle(
-              color: AppColors.themeColor,
-            ),
-            recognizer: TapGestureRecognizer()
-              ..onTap = () {
-                Navigator.pushNamedAndRemoveUntil(
-                    context, SignInScreen.name, (value) => false);
-              },
-          )
-        ],
-      ),
+          text: "Have an account? ",
+          style: TextStyle(
+            color: AppColors.blackColor,
+            fontWeight: FontWeight.w600,
+          ),
+          children: [
+            TextSpan(
+                text: ' Sign in',
+                style: TextStyle(
+                  color: AppColors.blackColor,
+                ),
+                recognizer: TapGestureRecognizer()
+                  ..onTap = () {
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      SignInScreen.name,
+                      (route) => false,
+                    );
+                  }),
+          ]),
     );
   }
 
-  Future<void> _resetPassword() async {
+  Future<void> _postResetPassword() async {
     Map<String, dynamic> requestBody = {
       "email": widget.email,
       "OTP": widget.otp,
@@ -120,15 +149,18 @@ class _ResetPasswordScreen extends State<ResetPasswordScreen> {
     NetworkResponse response = await NetworkCaller.postRequest(
         url: Urls.recoverResetPassUrl, body: requestBody);
 
-    debugPrint('email=>${widget.email}');
-    debugPrint('OTP=>${widget.otp}');
+    debugPrint('email=> ${widget.email}');
+    debugPrint('OTP=> ${widget.otp}');
 
-    if (response.responseData?['status'] == 'sucess') {
+    if (response.responseData?['status'] == 'success') {
       Navigator.pushNamedAndRemoveUntil(
-          context, SignInScreen.name, (route) => false);
+        context,
+        SignInScreen.name,
+        (route) => false,
+      );
       showSnackBarMessage(context, 'Password changed successfully');
     } else {
-      showSnackBarMessage(context, 'Failed to change password');
+      showSnackBarMessage(context, 'Request failed');
     }
   }
 

@@ -13,71 +13,65 @@ class ForgotPasswordVerifyEmailScreen extends StatefulWidget {
   static const String name = '/forgot-password/verify-email';
 
   @override
-  State<ForgotPasswordVerifyEmailScreen> createState() =>
-      _ForgotPasswordVerifyEmailScreen();
+  State<ForgotPasswordVerifyEmailScreen> createState() => _ForgotPasswordVerifyEmailScreen();
 }
 
-class _ForgotPasswordVerifyEmailScreen
-    extends State<ForgotPasswordVerifyEmailScreen> {
+class _ForgotPasswordVerifyEmailScreen extends State<ForgotPasswordVerifyEmailScreen> {
   final TextEditingController _emailTEController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
-
     return Scaffold(
       body: ScreenBackground(
         child: SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 80),
-                  Text(
-                    'Your Email Address',
-                    style: textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'A 6 digits of OTP will be sent to your email address',
-                    style: textTheme.titleSmall,
-                  ),
-                  const SizedBox(height: 24),
-                  Form(
-                    key: _formKey,
-                    child: TextFormField(
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      controller: _emailTEController,
-                      validator: (String? value) {
-                        if (value?.trim().isEmpty ?? true) {
-                          return 'Enter an email';
-                        }
-                        return null;
-                      },
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(hintText: 'Email'),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        _emailVerification();
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 80),
+                Text(
+                  'Your Email Address',
+                  style: textTheme.titleLarge,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'A 6 digits of OTP will be sent to your email address',
+                  style: textTheme.titleSmall,
+                ),
+                const SizedBox(height: 24),
+                Form(
+                  key: _formKey,
+                  child: TextFormField(
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    controller: _emailTEController,
+                    validator: (String? value) {
+                      if (value?.trim().isEmpty ?? true) {
+                        return 'Enter an email';
                       }
-                      //
+                      return null;
                     },
-                    child: const Icon(Icons.arrow_circle_right_outlined),
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(hintText: 'Email'),
                   ),
-                  const SizedBox(height: 48),
-                  Center(
-                    child: _buildSignInSection(),
-                  )
-                ],
-              ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      _emailVerification();
+                    }
+                    //
+                  },
+                  child: const Icon(Icons.arrow_circle_right_outlined),
+                ),
+                const SizedBox(height: 48),
+                Center(
+                  child: _buildSignInSection(),
+                )
+              ],
             ),
           ),
         ),
