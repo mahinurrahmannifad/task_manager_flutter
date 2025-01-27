@@ -1,17 +1,20 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:task_manager_flutter/data/services/network_caller.dart';
+import 'package:task_manager_flutter/data/utils/urls.dart';
 import 'package:task_manager_flutter/ui/screens/reset_password_screen.dart';
 import 'package:task_manager_flutter/ui/screens/sign_in_screen.dart';
 import 'package:task_manager_flutter/ui/utils/app_color.dart';
 import 'package:task_manager_flutter/ui/widgets/screen_background.dart';
-
-
+import 'package:task_manager_flutter/ui/widgets/snack_bar_message.dart';
 
 class ForgotPasswordVerifyOtpScreen extends StatefulWidget {
-  const ForgotPasswordVerifyOtpScreen({super.key});
+  const ForgotPasswordVerifyOtpScreen({super.key, required this.email});
 
   static const String name = '/forgot-password/verify-otp';
+
+  final String email;
 
   @override
   State<ForgotPasswordVerifyOtpScreen> createState() =>
@@ -49,7 +52,9 @@ class _ForgotPasswordVerifyOtpScreenState
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, ResetPasswordScreen.name);
+                      if (_formKey.currentState!.validate()) {
+                        _getOtpVerify();
+                      }
                     },
                     child: const Icon(Icons.arrow_circle_right_outlined),
                   ),
@@ -93,7 +98,7 @@ class _ForgotPasswordVerifyOtpScreenState
       text: TextSpan(
         text: "Have an account? ",
         style:
-        const TextStyle(color: Colors.black54, fontWeight: FontWeight.w600),
+            const TextStyle(color: Colors.black54, fontWeight: FontWeight.w600),
         children: [
           TextSpan(
             text: 'Sign in',
@@ -109,6 +114,20 @@ class _ForgotPasswordVerifyOtpScreenState
         ],
       ),
     );
+  }
+
+  Future<void> _getOtpVerify() async {
+    NetworkResponse response = await NetworkCaller.getRequest(
+        url: Urls.recoverVerifyOTPlUrl(widget.email, _otpTEController.text));
+
+    if (response.responseData?['status'] == 'success') {
+      Navigator.pushNamed(
+          context,
+          arguments: {'otp': _otpTEController.text, 'email': widget.email},
+          ResetPasswordScreen.name);
+    } else {
+      showSnackBarMessage(context, 'Invalid OTP');
+    }
   }
 
   @override

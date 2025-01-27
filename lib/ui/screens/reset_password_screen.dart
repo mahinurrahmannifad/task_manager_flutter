@@ -1,13 +1,20 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:task_manager_flutter/data/services/network_caller.dart';
+import 'package:task_manager_flutter/data/utils/urls.dart';
 import 'package:task_manager_flutter/ui/screens/sign_in_screen.dart';
 import 'package:task_manager_flutter/ui/utils/app_color.dart';
 import 'package:task_manager_flutter/ui/widgets/screen_background.dart';
+import 'package:task_manager_flutter/ui/widgets/snack_bar_message.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
-  const ResetPasswordScreen({super.key});
+  const ResetPasswordScreen(
+      {super.key, required this.email, required this.otp});
 
   static const String name = '/forgot-password/reset-password';
+
+  final String email;
+  final String otp;
 
   @override
   State<ResetPasswordScreen> createState() => _ResetPasswordScreen();
@@ -54,8 +61,19 @@ class _ResetPasswordScreen extends State<ResetPasswordScreen> {
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: () {},
-                    child: const Text('Confirm', style: TextStyle(fontWeight: FontWeight.w500),),
+                    onPressed: () {
+                      if (_forKey.currentState!.validate() &&
+                          _newPasswordTEController.text ==
+                              _confirmPasswordTEController.text) {
+                        _resetPassword();
+                      } else {
+                        showSnackBarMessage(context, 'Password do not match');
+                      }
+                    },
+                    child: const Text(
+                      'Confirm',
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
                   ),
                   const SizedBox(height: 48),
                   Center(
@@ -91,6 +109,27 @@ class _ResetPasswordScreen extends State<ResetPasswordScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _resetPassword() async {
+    Map<String, dynamic> requestBody = {
+      "email": widget.email,
+      "OTP": widget.otp,
+      "password": _newPasswordTEController.text
+    };
+    NetworkResponse response = await NetworkCaller.postRequest(
+        url: Urls.recoverResetPassUrl, body: requestBody);
+
+    debugPrint('email=>${widget.email}');
+    debugPrint('OTP=>${widget.otp}');
+
+    if (response.responseData?['status'] == 'sucess') {
+      Navigator.pushNamedAndRemoveUntil(
+          context, SignInScreen.name, (route) => false);
+      showSnackBarMessage(context, 'Password changed successfully');
+    } else {
+      showSnackBarMessage(context, 'Failed to change password');
+    }
   }
 
   @override

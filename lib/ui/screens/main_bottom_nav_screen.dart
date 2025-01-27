@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:task_manager_flutter/ui/screens/canceled_task_list_screen.dart';
+import 'package:task_manager_flutter/ui/screens/completed_task_list_screen.dart';
 import 'package:task_manager_flutter/ui/screens/new_task_list_screen.dart';
 import 'package:task_manager_flutter/ui/screens/progress_task_list_screen.dart';
 
@@ -16,8 +18,8 @@ class _MainBottomNavScreen extends State<MainBottomNavScreen> {
   final List<Widget> _screens = const [
     NewTaskListScreen(),
     ProgressTaskListScreen(),
-    NewTaskListScreen(),
-    NewTaskListScreen(),
+    CompletedTaskListScreen(),
+    CanceledTaskListScreen(),
   ];
 
   @override
@@ -31,10 +33,12 @@ class _MainBottomNavScreen extends State<MainBottomNavScreen> {
           setState(() {});
         },
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.new_label_outlined), label: 'New'),
+          NavigationDestination(
+              icon: Icon(Icons.new_label_outlined), label: 'New'),
           NavigationDestination(icon: Icon(Icons.refresh), label: 'Progress'),
           NavigationDestination(icon: Icon(Icons.done), label: 'Completed'),
-          NavigationDestination(icon: Icon(Icons.cancel_outlined), label: 'Cancelled'),
+          NavigationDestination(
+              icon: Icon(Icons.cancel_outlined), label: 'Canceled'),
         ],
       ),
     );
