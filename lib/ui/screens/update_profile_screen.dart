@@ -1,8 +1,6 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-
 import '../../data/services/network_caller.dart';
 import '../../data/utils/urls.dart';
 import '../controllers/auth_controller.dart';

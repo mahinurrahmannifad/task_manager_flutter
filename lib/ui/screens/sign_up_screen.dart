@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:task_manager_flutter/ui/widgets/centered_circular_progress_indicator.dart';
 import 'package:task_manager_flutter/ui/widgets/screen_background.dart';
 import '../../data/services/network_caller.dart';
@@ -182,7 +183,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
             recognizer: TapGestureRecognizer()
               ..onTap = () {
-                Navigator.pop(context);
+              Get.back();
+               // Navigator.pop(context);
               },
           )
         ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:task_manager_flutter/ui/screens/add_new_task_screen.dart';
 import 'package:task_manager_flutter/ui/screens/forgot_password_verify_email_screen.dart';
 import 'package:task_manager_flutter/ui/screens/forgot_password_verify_otp_screen.dart';
@@ -17,7 +18,7 @@ class TaskManagerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
         debugShowCheckedModeBanner: false,
         initialRoute: '/',
         navigatorKey: navigatorKey,
@@ -60,28 +61,28 @@ class TaskManagerApp extends StatelessWidget {
         ),
         onGenerateRoute: (RouteSettings settings) {
           late Widget widget;
-          if (settings.name == SplashScreen.name) {
+          if (settings.name == '/') {
             widget = const SplashScreen();
-          } else if (settings.name == SignInScreen.name) {
+          } else if (settings.name == '/sign-in') {
             widget = const SignInScreen();
-          } else if (settings.name == SignUpScreen.name) {
+          } else if (settings.name == '/sign-up') {
             widget = const SignUpScreen();
-          } else if (settings.name == ForgotPasswordVerifyEmailScreen.name) {
+          } else if (settings.name == '/forgot-password/verify-email') {
             widget = const ForgotPasswordVerifyEmailScreen();
-          } else if (settings.name == ForgotPasswordVerifyOtpScreen.name) {
+          } else if (settings.name == '/forgot-password/verify-otp') {
             final String email = settings.arguments.toString();
             widget = ForgotPasswordVerifyOtpScreen(email: email);
-          } else if (settings.name == ResetPasswordScreen.name) {
+          } else if (settings.name == '/forgot-password/reset-password') {
             final arguments = settings.arguments as Map<String, String>;
             widget = ResetPasswordScreen(
               email: arguments['email'] ?? '',
               otp: arguments['otp'] ?? '',
             );
-          } else if (settings.name == MainBottomNavScreen.name) {
+          } else if (settings.name == '/home') {
             widget = const MainBottomNavScreen();
-          } else if (settings.name == AddNewTaskScreen.name) {
+          } else if (settings.name == '/add-new-task') {
             widget = const AddNewTaskScreen();
-          } else if (settings.name == UpdateProfileScreen.name) {
+          } else if (settings.name == '/update-profile') {
             widget = const UpdateProfileScreen();
           }
 

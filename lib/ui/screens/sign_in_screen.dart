@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:task_manager_flutter/ui/screens/sign_up_screen.dart';
 
 import '../../data/models/user_model.dart';
@@ -10,7 +11,6 @@ import '../utils/app_color.dart';
 import '../widgets/centered_circular_progress_indicator.dart';
 import '../widgets/screen_background.dart';
 import '../widgets/snack_bar_message.dart';
-import 'forgot_password_verify_email_screen.dart';
 import 'main_bottom_nav_screen.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -85,8 +85,8 @@ class _SignInScreenState extends State<SignInScreen> {
                       children: [
                         TextButton(
                           onPressed: () {
-                            Navigator.pushNamed(
-                                context, ForgotPasswordVerifyEmailScreen.name);
+                           Get.offNamed(
+                               '/forgot-password/verify-email');
                           },
                           child: const Text('Forgot Password?'),
                         ),
