@@ -5,9 +5,10 @@ import 'package:task_manager_flutter/ui/screens/new_task_list_screen.dart';
 import 'package:task_manager_flutter/ui/screens/progress_task_list_screen.dart';
 
 class MainBottomNavScreen extends StatefulWidget {
-  const MainBottomNavScreen({super.key});
+  const MainBottomNavScreen({super.key, required this.initialIndex});
 
   static const String name = '/home';
+  final int initialIndex;
 
   @override
   State<MainBottomNavScreen> createState() => _MainBottomNavScreen();

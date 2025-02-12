@@ -1,48 +1,107 @@
+// import 'dart:convert';
+//
+// import 'package:get/get.dart';
+// import 'package:task_manager_flutter/data/services/network_caller.dart';
+// import 'package:task_manager_flutter/data/utils/urls.dart';
+//
+// import '../../data/models/user_model.dart';
+// import 'auth_controller.dart';
+//
+// class SignInController extends GetxController{
+//   bool _inProgress= false;
+//   bool get inProgress=> _inProgress;
+//   AuthController authController = Get.put(AuthController());
+//
+//   late String? _errorMessage;
+//   String? get errorMessage=> _errorMessage;
+//
+//
+//   Future<bool> signIn(String email, String password) async {
+//     bool isSuccess=false;
+//     _inProgress = true;
+//     update();
+//
+//     Map<String, dynamic> requestBody = {
+//       "email": email,
+//       "password": password,
+//     };
+//
+//     final NetworkResponse response =
+//     await NetworkCaller.postRequest(url: Urls.loginUrl, body: requestBody);
+//     _inProgress=false;
+//     update();
+//
+//     if (response.isSuccess) {
+//       if (response.responseData is String) {
+//         try {
+//           response.responseData= jsonDecode(response.responseData as String);
+//         } catch (e) {
+//           _errorMessage='Response not working.${e.toString()}';
+//           return false;
+//         }
+//       }
+//
+//       String? token = response.responseData?['token'];
+//       UserModel? userData = UserModel.fromJson(response.responseData?['data'] ?? {});
+//
+//       if (token != null) {
+//         await authController.saveData(token, userData);
+//         _errorMessage='Login Success';
+//         isSuccess =true;
+//       } else {
+//         _errorMessage ='Email/Password Invalid.';
+//       }
+//     }
+//     return isSuccess;
+//   }
+//
+//
+// }
+
+
+
 import 'package:get/get.dart';
-import 'package:task_manager_flutter/data/services/network_caller.dart';
-import 'package:task_manager_flutter/data/utils/urls.dart';
 
 import '../../data/models/user_model.dart';
+import '../../data/services/network_caller.dart';
+import '../../data/utils/urls.dart';
 import 'auth_controller.dart';
 
-class SignInController extends GetxController{
-  bool _inProgress= false;
-  bool get inProgress=> _inProgress;
+class SignInController extends GetxController {
+  bool _inProgress = false;
+
+  bool get inProgress => _inProgress;
 
   String? _errorMessage;
-  String? get errorMessage=> _errorMessage;
+
+  String? get errorMessage => _errorMessage;
 
   Future<bool> signIn(String email, String password) async {
-    bool isSuccess=false;
+    bool isSuccess = false;
     _inProgress = true;
     update();
-
     Map<String, dynamic> requestBody = {
       "email": email,
       "password": password,
     };
-
     final NetworkResponse response =
     await NetworkCaller.postRequest(url: Urls.loginUrl, body: requestBody);
-    _inProgress=false;
-    update();
-
     if (response.isSuccess) {
-      String token = response.responseData!['token'];
-      UserModel userModel = UserModel.fromJson(response.responseData!['data']);
-      await AuthController.saveUserData(token, userModel);
+      try {
+        String token = response.responseData!['token'];
+        UserModel userModel = UserModel.fromJson(response.responseData!['data']);
 
-      isSuccess=true;
-      _errorMessage=null;
+        await AuthController().saveData(token, userModel);
 
-    } else {
-      if (response.statusCode == 401) {
-        _errorMessage= 'Username or Password is incorrect';
-      } else {
-       _errorMessage= response.errorMessage;
+        isSuccess = true;
+        _errorMessage = null;
+      } catch (e) {
+        _errorMessage = 'Error processing response: ${e.toString()}';
+        isSuccess = false;
       }
     }
-    _inProgress=false;
+
+    _inProgress = false;
     update();
     return isSuccess;
   }

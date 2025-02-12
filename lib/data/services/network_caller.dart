@@ -53,49 +53,70 @@ class NetworkCaller {
     }
   }
 
-  static Future<NetworkResponse> postRequest(
-      {required String url, Map<String, dynamic>? body}) async {
+  static Future<NetworkResponse> postRequest({
+    required String url,
+    Map<String, dynamic>? body,
+  }) async {
     try {
-      Uri uri = Uri.parse(url);
-      debugPrint('URL => $url');
-      debugPrint('BODY => $body');
-      Response response = await post(uri,
-          headers: {
-            'content-type': 'application/json',
-            'token': AuthController.accessToken ?? ''
-          },
-          body: jsonEncode(body));
-      debugPrint('Response Code => ${response.statusCode}');
-      debugPrint('Response Data => ${response.body}');
+      Uri uri = Uri.parse(url); // Parse the URL
+      debugPrint('URL = $url');
+
+      Response response = await post(
+        uri,
+        body: jsonEncode(body),
+        headers: {
+          'Content-Type': 'application/json',
+          'token': AuthController.accessToken ?? ''
+        },
+      );
+
+      debugPrint('Status Code = ${response.statusCode}');
+      debugPrint('Response Data = ${response.body}');
+
 
       if (response.statusCode == 200) {
-        final decodedResponse = jsonDecode(response.body);
         return NetworkResponse(
-            isSuccess: true,
-            statusCode: response.statusCode,
-            responseData: decodedResponse);
-      } else if (response.statusCode == 401) {
+          statusCode: response.statusCode,
+          isSuccess: true,
+          responseData: jsonDecode(response.body),
+        );
+      }
+      // Handle unauthorized (401) response
+      else if (response.statusCode == 401) {
         await _logout();
         return NetworkResponse(
-            isSuccess: false, statusCode: response.statusCode);
-      } else {
+          statusCode: response.statusCode,
+          isSuccess: true,
+          responseData: jsonDecode(response.body),
+        );
+      }
+      else {
         return NetworkResponse(
-            isSuccess: false, statusCode: response.statusCode);
+          statusCode: response.statusCode,
+          isSuccess: false,
+        );
       }
     } catch (e) {
       return NetworkResponse(
-        isSuccess: false,
         statusCode: -1,
+        isSuccess: false,
         errorMessage: e.toString(),
       );
     }
   }
 
   static Future<void> _logout() async {
-    await AuthController.clearUserData();
+    AuthController authController =AuthController();
+
+    // Clear data
+    await authController.clearUserData();
     Navigator.pushNamedAndRemoveUntil(
-        TaskManagerApp.navigatorKey.currentContext!,
-        SignInScreen.name,
-        (_) => false);
+      TaskManagerApp.navigatorKey.currentContext!,
+      SignInScreen.name,
+          (route) => false,
+    );
+
   }
+
 }
+

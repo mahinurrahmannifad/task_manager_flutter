@@ -37,7 +37,7 @@ class _CanceledTaskListScreenState extends State<CanceledTaskListScreen> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: TMAppBar(textTheme: textTheme), // App bar with custom theme
+      appBar: TmAppBar(textTheme: textTheme), // App bar with custom theme
       body: RefreshIndicator(
         onRefresh: _refreshData, // Enable pull-to-refresh functionality
         child: ScreenBackground(

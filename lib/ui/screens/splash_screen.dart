@@ -17,6 +17,9 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+
+  AuthController authController = Get.put(AuthController());
+
   @override
   void initState() {
     super.initState();
@@ -24,10 +27,10 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> moveToNextScreen() async {
-    await Future.delayed(const Duration(seconds: 2));
-    bool isUserLoggedIn = await AuthController.isUserLoggedIn();
-    if (isUserLoggedIn) {
-      Get.offNamed(MainBottomNavScreen.name);
+    await Future.delayed(const Duration(seconds: 4));
+    bool userLoggedIn = await authController.userLoggedIn();
+    if (userLoggedIn) {
+      Get.offNamed( MainBottomNavScreen.name);
     } else {
       Get.offNamed(SignInScreen.name);
     }

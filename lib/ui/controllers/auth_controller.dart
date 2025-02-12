@@ -1,33 +1,42 @@
 import 'dart:convert';
+import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../data/models/user_model.dart';
+import 'package:task_manager_flutter/data/models/user_model.dart';
 
-class AuthController {
-  static String? accessToken;
-  static UserModel? userModel;
-
-  static const String _accessTokenKey = 'access-token';
+class AuthController extends GetxController {
+  static const String _tokenKey = 'access-token';
   static const String _userDataKey = 'user-data';
 
-  static Future<void> saveUserData(String token, UserModel model) async {
+  static String? accessToken;
+  Rx<UserModel?> userModel = Rx<UserModel?>(null);
+  RxBool isLoading = false.obs;
+
+  Future<void> saveData(String token, UserModel userData) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    await sharedPreferences.setString(_accessTokenKey, token);
-    await sharedPreferences.setString(_userDataKey, jsonEncode(model.toJson()));
+
+    await sharedPreferences.setString(_tokenKey, token); // Fixed space issue
     accessToken = token;
-    userModel = model;
+
+    await sharedPreferences.setString(_userDataKey, jsonEncode(userData.toJson()));
+    userModel.value = userData;
   }
 
-  static Future<void> getUserData() async {
+  Future<void> getUserData() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    String? token = sharedPreferences.getString(_accessTokenKey);
-    String? userData = sharedPreferences.getString(_userDataKey);
-    accessToken = token;
-    userModel = UserModel.fromJson(jsonDecode(userData!));
+
+    String? token = sharedPreferences.getString(_tokenKey);
+    String? userDataJson = sharedPreferences.getString(_userDataKey);
+
+    if (token != null && userDataJson != null) {
+      accessToken = token;
+      userModel.value = UserModel.fromJson(jsonDecode(userDataJson));
+    }
   }
 
-  static Future<bool> isUserLoggedIn() async {
+  Future<bool> userLoggedIn() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    String? token = sharedPreferences.getString(_accessTokenKey);
+    String? token = sharedPreferences.getString(_tokenKey);
+
     if (token != null) {
       await getUserData();
       return true;
@@ -35,8 +44,12 @@ class AuthController {
     return false;
   }
 
-  static Future<void> clearUserData() async {
+  Future<void> clearUserData() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    await sharedPreferences.clear();
+    await sharedPreferences.remove(_tokenKey);
+    await sharedPreferences.remove(_userDataKey);
+
+    accessToken = null;
+    userModel.value = null;
   }
 }

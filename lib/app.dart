@@ -79,7 +79,7 @@ class TaskManagerApp extends StatelessWidget {
               otp: arguments['otp'] ?? '',
             );
           } else if (settings.name == '/home') {
-            widget = const MainBottomNavScreen();
+            widget = const MainBottomNavScreen(initialIndex: 0);
           } else if (settings.name == '/add-new-task') {
             widget = const AddNewTaskScreen();
           } else if (settings.name == '/update-profile') {

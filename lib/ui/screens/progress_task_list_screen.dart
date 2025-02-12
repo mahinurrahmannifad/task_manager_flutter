@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:task_manager_flutter/data/models/task_count_by_status_model.dart';
 import 'package:task_manager_flutter/data/models/task_list_by_status_model.dart';
 import 'package:task_manager_flutter/data/models/task_model.dart';
-import 'package:task_manager_flutter/data/services/network_caller.dart';
-import 'package:task_manager_flutter/data/utils/urls.dart';
+import '../controllers/get_task_list_controller.dart';
 import '../widgets/screen_background.dart';
 import '../widgets/snack_bar_message.dart';
 import '../widgets/task_item_widget.dart';
@@ -18,19 +18,20 @@ class ProgressTaskListScreen extends StatefulWidget {
 
 class _ProgressTaskListScreenState extends State<ProgressTaskListScreen> {
   TaskListByStatusModel? progressTaskListModel;
-  bool _getProgressTaskListInProgress = false;
+  final bool _getProgressTaskListInProgress = false;
   TaskCountByStatusModel? taskCountByStatusModel;
   TaskModel? taskModel;
+  final GetTaskListController _getTaskListController =
+      Get.find<GetTaskListController>();
 
   Future<void> _refreshData() async {
-    // await _getTaskCountByStatus(isformRefresh: false);
     await _getProgressTaskList(isformRefresh: false);
+    _getTaskListController.update();
   }
 
   @override
   void initState() {
     _getProgressTaskList(isformRefresh: true);
-    //_getTaskCountByStatus(isformRefresh: true);
     super.initState();
   }
 
@@ -38,7 +39,7 @@ class _ProgressTaskListScreenState extends State<ProgressTaskListScreen> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: TMAppBar(
+      appBar: TmAppBar(
         textTheme: textTheme,
       ),
       body: RefreshIndicator(
@@ -47,11 +48,7 @@ class _ProgressTaskListScreenState extends State<ProgressTaskListScreen> {
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
-                children: [
-                  // SizedBox(height: 100,
-                  //     child: _buildProgressTaskSummaryByStatus()),
-                  _buildTaskListView()
-                ],
+                children: [_buildTaskListView()],
               ),
             ),
           )),
@@ -85,59 +82,12 @@ class _ProgressTaskListScreenState extends State<ProgressTaskListScreen> {
     );
   }
 
-  // Widget _buildProgressTaskSummaryByStatus() {
-  //   return Visibility(
-  //     visible: _getProgressTaskListInProgress == false,
-  //     replacement: CenteredCircularProgressIndicator(),
-  //     child: SizedBox(
-  //       height: 100,
-  //       child: ListView.builder(
-  //           scrollDirection: Axis.horizontal,
-  //           itemCount: taskCountByStatusModel?.taskByStatusList?.length ?? 0,
-  //           itemBuilder: (context, index) {
-  //             final TaskCountModel model =
-  //                 taskCountByStatusModel!.taskByStatusList![index];
-  //             return TaskStatusSummaryCounterWidget(
-  //               count: model.sum.toString(),
-  //               title: model.sId ?? '',
-  //             );
-  //           }),
-  //     ),
-  //   );
-  // }
-
-  Future<void> _getProgressTaskList({bool isformRefresh = true}) async {
-    if (!isformRefresh) {
-      _getProgressTaskListInProgress = true;
-      setState(() {});
+  Future<void> _getProgressTaskList({bool isformRefresh = false}) async {
+    bool progressTaskListInProgress = await _getTaskListController.getTaskList(
+        isFromRefresh: isformRefresh, statusName: 'Progress');
+    if (!progressTaskListInProgress) {
+      showSnackBarMessage(context, _getTaskListController.errorMessage);
     }
-
-    NetworkResponse response = await NetworkCaller.getRequest(
-        url: Urls.taskListByStatusUrl('Progress'));
-    if (response.isSuccess) {
-      progressTaskListModel =
-          TaskListByStatusModel.fromJson(response.responseData!);
-    } else {
-      showSnackBarMessage(context, response.errorMessage);
-    }
-    _getProgressTaskListInProgress = false;
-    setState(() {});
+    _getTaskListController.update();
   }
-
-// Future<void> _getTaskCountByStatus({required bool isformRefresh}) async {
-//   if (!isformRefresh) {
-//     _getProgressTaskListInProgress = true;
-//     setState(() {});
-//   }
-//   final NetworkResponse response =
-//       await NetworkCaller.getRequest(url: Urls.taskCountByStatusUrl);
-//   if (response.isSuccess) {
-//     taskCountByStatusModel =
-//         TaskCountByStatusModel.fromJson(response.responseData!);
-//   } else {
-//     showSnackBarMessage(context, response.errorMessage);
-//   }
-//   _getProgressTaskListInProgress = false;
-//   setState(() {});
-// }
 }

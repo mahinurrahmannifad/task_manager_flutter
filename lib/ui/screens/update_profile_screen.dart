@@ -1,10 +1,11 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../data/services/network_caller.dart';
-import '../../data/utils/urls.dart';
+import 'package:task_manager_flutter/data/models/user_model.dart';
+import 'package:task_manager_flutter/ui/controllers/image_controller.dart';
+import '../../data/models/task_list_by_status_model.dart';
 import '../controllers/auth_controller.dart';
-import '../widgets/centered_circular_progress_indicator.dart';
+import '../controllers/update_profile_controller.dart';
 import '../widgets/screen_background.dart';
 import '../widgets/snack_bar_message.dart';
 import '../widgets/tm_app_bar.dart';
@@ -26,23 +27,35 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   final TextEditingController _passwordTEController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   XFile? _pickedImage;
-  bool _updateProfileInProgress = false;
+  TaskListByStatusModel? taskListModel;
+  UserModel? userData;
+
+  final UpdateProfileController _updateProfileController = Get.put(
+      UpdateProfileController());
+  ImageController imageController = ImageController();
+  AuthController authController = Get.put(AuthController());
+
 
   @override
   void initState() {
     super.initState();
-    _emailTEController.text = AuthController.userModel?.email ?? '';
-    _firstNameTEController.text = AuthController.userModel?.firstName ?? '';
-    _lastNameTEController.text = AuthController.userModel?.lastName ?? '';
-    _mobileTEController.text = AuthController.userModel?.mobile ?? '';
+    _emailTEController.text = authController.userModel.value?.email ?? '';
+    _firstNameTEController.text =
+        authController.userModel.value?.firstName ?? 'empty';
+    _lastNameTEController.text =
+        authController.userModel.value?.lastName ?? 'empty';
+    _mobileTEController.text =
+        authController.userModel.value?.mobile ?? 'empty';
   }
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final textTheme = Theme
+        .of(context)
+        .textTheme;
 
     return Scaffold(
-      appBar: TMAppBar(
+      appBar: TmAppBar(
         fromUpdateProfile: true,
         textTheme: textTheme,
       ),
@@ -71,7 +84,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                     controller: _firstNameTEController,
                     decoration: const InputDecoration(hintText: 'First name'),
                     validator: (String? value) {
-                      if (value?.trim().isEmpty ?? true) {
+                      if (value
+                          ?.trim()
+                          .isEmpty ?? true) {
                         return 'Enter your first name';
                       }
                       return null;
@@ -82,7 +97,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                     controller: _lastNameTEController,
                     decoration: const InputDecoration(hintText: 'Last name'),
                     validator: (String? value) {
-                      if (value?.trim().isEmpty ?? true) {
+                      if (value
+                          ?.trim()
+                          .isEmpty ?? true) {
                         return 'Enter your last name';
                       }
                       return null;
@@ -94,7 +111,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(hintText: 'Mobile'),
                     validator: (String? value) {
-                      if (value?.trim().isEmpty ?? true) {
+                      if (value
+                          ?.trim()
+                          .isEmpty ?? true) {
                         return 'Enter your phone no';
                       }
                       return null;
@@ -107,14 +126,20 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                     decoration: const InputDecoration(hintText: 'Password'),
                   ),
                   const SizedBox(height: 24),
-                  Visibility(
-                    visible: _updateProfileInProgress == false,
-                    replacement: const CenteredCircularProgressIndicator(),
-                    child: ElevatedButton(
-                      onPressed: _onTapUpdateButton,
-                      child: const Icon(Icons.arrow_circle_right_outlined),
-                    ),
-                  ),
+                  GetBuilder<UpdateProfileController>(builder: (controller) {
+                    return Visibility(
+                      visible: controller.isDataProgress == false,
+                      replacement: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          _updateProfile();
+                        },
+                        child: const Text('Update Profile'),
+                      ),
+                    );
+                  }),
                 ],
               ),
             ),
@@ -126,82 +151,82 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
 
   Widget _buildPhotoPicker() {
     return GestureDetector(
-      onTap: _pickImage,
+      onTap: () {
+        getImagePicker();
+        print('image=> $_pickedImage');
+      },
       child: Container(
         height: 50,
         decoration: BoxDecoration(
-            color: Colors.white, borderRadius: BorderRadius.circular(8)),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+        ),
         child: Row(
           children: [
             Container(
-              height: 50,
               padding: const EdgeInsets.symmetric(horizontal: 16),
+              height: 50,
               decoration: const BoxDecoration(
-                  color: Colors.grey,
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(8),
-                      bottomLeft: Radius.circular(8))),
+                color: Colors.grey,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(8),
+                  bottomLeft: Radius.circular(8),
+                ),
+              ),
               alignment: Alignment.center,
               child: const Text(
                 'Photo',
                 style: TextStyle(
                   color: Colors.white,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            Text(
-              _pickedImage == null ? 'No item selected' : _pickedImage!.name,
-              maxLines: 1,
-            )
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                _pickedImage == null ? 'No item selected' : _pickedImage!.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Future<void> _pickImage() async {
-    ImagePicker picker = ImagePicker();
+
+  Future<void> _updateProfile() async {
+    bool isSuccess = await _updateProfileController.updateProfile(
+
+        firstName: _firstNameTEController.text.trim(),
+        lastName: _lastNameTEController.text.trim(),
+        mobile: _mobileTEController.text.trim(),
+        image: _pickedImage,
+        password: _passwordTEController.text);
+
+    if (isSuccess) {
+      showSnackBarMessage(context, _updateProfileController.errorMessage);
+    } else {
+      showSnackBarMessage(context, _updateProfileController.errorMessage);
+    }
+  }
+
+  Future<void> getImagePicker() async {
+    final ImagePicker picker = ImagePicker();
     XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       _pickedImage = image;
       setState(() {});
+      // imageController.update();
     }
-  }
-
-  void _onTapUpdateButton() {
-    if (_formKey.currentState!.validate()) {
-      _updateProfile();
-    }
-  }
-
-  Future<void> _updateProfile() async {
-    _updateProfileInProgress = true;
-    setState(() {});
-    Map<String, dynamic> requestBody = {
-      "email": _emailTEController.text.trim(),
-      "firstName": _firstNameTEController.text.trim(),
-      "lastName": _lastNameTEController.text.trim(),
-      "mobile": _mobileTEController.text.trim(),
-    };
-
-    if (_pickedImage != null) {
-      List<int> imageBytes = await _pickedImage!.readAsBytes();
-      requestBody['photo'] = base64Encode(imageBytes);
-    }
-    if (_passwordTEController.text.isNotEmpty) {
-      requestBody['password'] = _passwordTEController.text;
-    }
-
-    final NetworkResponse response = await NetworkCaller.postRequest(
-        url: Urls.updateProfile, body: requestBody);
-    _updateProfileInProgress = false;
-    setState(() {});
-    if (response.isSuccess) {
-      _passwordTEController.clear();
-    } else {
-      showSnackBarMessage(context, response.errorMessage);
-    }
+    print('image=> $image');
   }
 
   @override
@@ -213,4 +238,5 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
     _passwordTEController.dispose();
     super.dispose();
   }
+
 }

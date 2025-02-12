@@ -39,7 +39,7 @@ class _CompletedTaskListScreenState extends State<CompletedTaskListScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: TMAppBar(textTheme: textTheme),
+      appBar: TmAppBar(textTheme: textTheme),
       body: RefreshIndicator(
         onRefresh: _refreshAllData,
         child: ScreenBackground(

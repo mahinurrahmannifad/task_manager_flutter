@@ -6,8 +6,6 @@ import 'package:task_manager_flutter/ui/controllers/new_task_controller.dart';
 import '../../data/models/task_count_by_status_model.dart';
 import '../../data/models/task_count_model.dart';
 import '../../data/models/task_list_by_status_model.dart';
-import '../../data/services/network_caller.dart';
-import '../../data/utils/urls.dart';
 import '../widgets/centered_circular_progress_indicator.dart';
 import '../widgets/screen_background.dart';
 import '../widgets/snack_bar_message.dart';
@@ -24,8 +22,8 @@ class NewTaskListScreen extends StatefulWidget {
 }
 
 class _NewTaskListScreenState extends State<NewTaskListScreen> {
-  bool _getTaskCountByStatusInProgress = false;
-  bool _getNewTaskListInProgress = false;
+  final bool _getTaskCountByStatusInProgress = false;
+  final bool _getNewTaskListInProgress = false;
   TaskCountByStatusModel? taskCountByStatusModel;
   final NewTaskController _newTaskController= Get.find<NewTaskController>();
   TaskListByStatusModel? newTaskListModel;
@@ -46,7 +44,7 @@ class _NewTaskListScreenState extends State<NewTaskListScreen> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: TMAppBar(textTheme: textTheme),
+      appBar: TmAppBar(textTheme: textTheme),
       body: RefreshIndicator(
         onRefresh: _refreshData,
         child: ScreenBackground(
@@ -123,21 +121,13 @@ class _NewTaskListScreenState extends State<NewTaskListScreen> {
   }
 
   Future<void> _getTaskCountByStatus({bool isformRefresh = false}) async {
-    if (!isformRefresh) {
-      _getTaskCountByStatusInProgress = true;
-      setState(() {});
+    bool isSuccess= await _newTaskController.getTaskCountByStatus(isformRefresh:isformRefresh);
+    if(!isSuccess){
+      showSnackBarMessage(context, 'Data error');
     }
-    final NetworkResponse response =
-        await NetworkCaller.getRequest(url: Urls.taskCountByStatusUrl);
-    if (response.isSuccess) {
-      taskCountByStatusModel =
-          TaskCountByStatusModel.fromJson(response.responseData!);
-    } else {
-      showSnackBarMessage(context, response.errorMessage);
-    }
-    _getTaskCountByStatusInProgress = false;
-    setState(() {});
+    _newTaskController.isLoading.value=false;
   }
+
 Future<void>_getNewTaskList({required bool isformRefresh})async{
     final bool isSuccess= await _newTaskController.getTaskList();
     if(!isSuccess){

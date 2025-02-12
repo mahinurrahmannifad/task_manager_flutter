@@ -1,11 +1,12 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:task_manager_flutter/data/services/network_caller.dart';
-import 'package:task_manager_flutter/data/utils/urls.dart';
+import 'package:get/get.dart';
 import 'package:task_manager_flutter/ui/screens/sign_in_screen.dart';
 import 'package:task_manager_flutter/ui/utils/app_color.dart';
 import 'package:task_manager_flutter/ui/widgets/screen_background.dart';
 import 'package:task_manager_flutter/ui/widgets/snack_bar_message.dart';
+
+import '../controllers/recover_reset_password_controller.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen(
@@ -26,6 +27,8 @@ class _ResetPasswordScreen extends State<ResetPasswordScreen> {
   final TextEditingController _confirmPasswordTEController =
       TextEditingController();
   final GlobalKey<FormState> _forKey = GlobalKey<FormState>();
+  final RecoverResetPasswordController _recoverResetPasswordController = Get
+      .find<RecoverResetPasswordController>();
 
   @override
   Widget build(BuildContext context) {
@@ -141,27 +144,16 @@ class _ResetPasswordScreen extends State<ResetPasswordScreen> {
   }
 
   Future<void> _postResetPassword() async {
-    Map<String, dynamic> requestBody = {
-      "email": widget.email,
-      "OTP": widget.otp,
-      "password": _newPasswordTEController.text
-    };
-    NetworkResponse response = await NetworkCaller.postRequest(
-        url: Urls.recoverResetPassUrl, body: requestBody);
+   bool isSuccess = await _recoverResetPasswordController.postResetPassword(email: widget.email,
+       otp: widget.otp, password: _newPasswordTEController.text);
 
-    debugPrint('email=> ${widget.email}');
-    debugPrint('OTP=> ${widget.otp}');
+   if(isSuccess){
+     showSnackBarMessage(context, _recoverResetPasswordController.errorMessage);
+     Get.offAndToNamed(SignInScreen.name);
+   }else{
 
-    if (response.responseData?['status'] == 'success') {
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        SignInScreen.name,
-        (route) => false,
-      );
-      showSnackBarMessage(context, 'Password changed successfully');
-    } else {
-      showSnackBarMessage(context, 'Request failed');
-    }
+     showSnackBarMessage(context, _recoverResetPasswordController.errorMessage);
+   }
   }
 
   @override

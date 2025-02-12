@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:task_manager_flutter/data/services/network_caller.dart';
-import 'package:task_manager_flutter/data/utils/urls.dart';
+import 'package:get/get.dart';
+import 'package:task_manager_flutter/ui/screens/main_bottom_nav_screen.dart';
 import 'package:task_manager_flutter/ui/widgets/centered_circular_progress_indicator.dart';
 import 'package:task_manager_flutter/ui/widgets/snack_bar_message.dart';
 import 'package:task_manager_flutter/ui/widgets/tm_app_bar.dart';
+import '../controllers/add_new_task_controller.dart';
 import '../widgets/screen_background.dart';
 
 class AddNewTaskScreen extends StatefulWidget {
@@ -20,13 +21,14 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
   final TextEditingController _descriptionTEController =
       TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  bool _addNewTaskInProgress = false;
+  final bool _addNewTaskInProgress = false;
+  final AddNewTaskController _addNewTaskController = Get.find<AddNewTaskController>();
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: TMAppBar(
+      appBar: TmAppBar(
         textTheme: textTheme,
       ),
       body: ScreenBackground(
@@ -90,22 +92,16 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
   }
 
   Future<void> _createNewTask() async {
-    _addNewTaskInProgress = true;
-    setState(() {});
-    Map<String, dynamic> requestBody = {
-      "title": _titleTEController.text.trim(),
-      "description": _descriptionTEController.text.trim(),
-      "status": "New"
-    };
-    final NetworkResponse response = await NetworkCaller.postRequest(
-        url: Urls.createTaskUrl, body: requestBody);
-    _addNewTaskInProgress = false;
-    setState(() {});
-    if (response.isSuccess) {
+    bool addNewTaskItemIsSuccess = await _addNewTaskController.addNewTaskItem(
+        title: _titleTEController.text.trim(),
+        description: _descriptionTEController.text.trim());
+
+    if (addNewTaskItemIsSuccess) {
       _clearTextFields();
-      showSnackBarMessage(context, 'New task added!');
+      showSnackBarMessage(context, _addNewTaskController.errorMessage);
+      Get.offAll(() => const MainBottomNavScreen(initialIndex: 0));
     } else {
-      showSnackBarMessage(context, response.errorMessage);
+      showSnackBarMessage(context, _addNewTaskController.errorMessage);
     }
   }
 
