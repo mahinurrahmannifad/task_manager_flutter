@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:task_manager_flutter/ui/controllers/get_task_list_controller.dart';
 import 'package:task_manager_flutter/ui/widgets/screen_background.dart';
 import 'package:task_manager_flutter/ui/widgets/snack_bar_message.dart';
 import 'package:task_manager_flutter/ui/widgets/task_item_widget.dart';
 import 'package:task_manager_flutter/ui/widgets/tm_app_bar.dart';
 import '../../data/models/task_count_by_status_model.dart';
 import '../../data/models/task_list_by_status_model.dart';
-import '../../data/services/network_caller.dart';
-import '../../data/utils/urls.dart';
 
 class CanceledTaskListScreen extends StatefulWidget {
   const CanceledTaskListScreen({super.key});
@@ -16,23 +16,21 @@ class CanceledTaskListScreen extends StatefulWidget {
 }
 
 class _CanceledTaskListScreenState extends State<CanceledTaskListScreen> {
-  bool _getTasksSummaryByStatusProgress = false;
+  final bool _getTasksSummaryByStatusProgress = false;
   TaskCountByStatusModel? taskCountByStatusModel;
   TaskListByStatusModel? canceledTaskListModel;
+  final GetTaskListController _getTaskListController= Get.find<GetTaskListController>();
 
-  // Refresh both task count and task list
+
   Future<void> _refreshData() async {
-    //await _getTaskCountByStatus(isFromRefresh: true); // Refresh task count
-    await _getCanceledTaskListView(
-        isFromRefresh: true); // Refresh canceled task list
+    await _getCanceledTaskListView(isFromRefresh: true);
+    _getTaskListController.update();
   }
 
   @override
   void initState() {
     super.initState();
-    // _getTaskCountByStatus(isFromRefresh: false); // Load task count initially
-    _getCanceledTaskListView(
-        isFromRefresh: false); // Load canceled tasks initially
+    _getCanceledTaskListView(isFromRefresh: false);
   }
 
   @override
@@ -87,69 +85,15 @@ class _CanceledTaskListScreenState extends State<CanceledTaskListScreen> {
     );
   }
 
-  // Builds the summary of tasks by status (e.g., Canceled, Pending, etc.)
-  // Widget _buildTasksSummaryByStatus() {
-  //   return Visibility(
-  //     visible: _getTasksSummaryByStatusProgress == false,
-  //     replacement: const Center(
-  //       child: CircularProgressIndicator(),
-  //     ),
-  //     child: SizedBox(
-  //       height: 100,
-  //       child: ListView.builder(
-  //         scrollDirection: Axis.horizontal,
-  //         itemCount: taskCountByStatusModel?.taskByStatusList?.length ?? 0,
-  //         itemBuilder: (context, index) {
-  //           final TaskCountModel model =
-  //           taskCountByStatusModel!.taskByStatusList![index];
-  //           return TaskStatusSummaryCounterWidget(
-  //             count: model.sum.toString(),
-  //             title: model.sId ?? '',
-  //           );
-  //         },
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // Fetch task count summary by status
-  // Future<void> _getTaskCountByStatus({bool isFromRefresh = false}) async {
-  //   if (!isFromRefresh) {
-  //     _getTasksSummaryByStatusProgress = true;
-  //     setState(() {});
-  //   }
-  //
-  //   final NetworkResponse response =
-  //   await NetworkCaller.getRequest(url: Urls.taskCountByStatusUrl);
-  //
-  //   if (response.isSuccess) {
-  //     taskCountByStatusModel =
-  //         TaskCountByStatusModel.fromJson(response.responseData!);
-  //   } else {
-  //     showSnackBarMessage(context, response.errorMessage);
-  //   }
-  //   _getTasksSummaryByStatusProgress = false;
-  //   setState(() {});
-  // }
-
-  // Fetch the list of canceled tasks
   Future<void> _getCanceledTaskListView({bool isFromRefresh = false}) async {
-    if (!isFromRefresh) {
-      _getTasksSummaryByStatusProgress = true;
-      setState(() {});
-    }
+    bool cancelledTaskListInProgress = await _getTaskListController.getTaskList(
+        isFromRefresh: isFromRefresh,
+        statusName: 'Canceled');
 
-    final NetworkResponse response = await NetworkCaller.getRequest(
-      url: Urls.taskListByStatusUrl('Canceled'),
-    );
-
-    if (response.isSuccess) {
-      canceledTaskListModel =
-          TaskListByStatusModel.fromJson(response.responseData!);
-    } else {
-      showSnackBarMessage(context, response.errorMessage);
+    if(!cancelledTaskListInProgress){
+      showSnackBarMessage(context, _getTaskListController.errorMessage);
     }
-    _getTasksSummaryByStatusProgress = false;
-    setState(() {});
+    _getTaskListController.update();
   }
+
 }

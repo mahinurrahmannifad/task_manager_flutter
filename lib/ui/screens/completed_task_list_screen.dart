@@ -1,49 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:task_manager_flutter/ui/controllers/get_task_list_controller.dart';
 import 'package:task_manager_flutter/ui/widgets/screen_background.dart';
 import 'package:task_manager_flutter/ui/widgets/snack_bar_message.dart';
 import 'package:task_manager_flutter/ui/widgets/tm_app_bar.dart';
 import '../../data/models/task_count_by_status_model.dart';
 import '../../data/models/task_list_by_status_model.dart';
 import '../../data/models/task_model.dart';
-import '../../data/services/network_caller.dart';
-import '../../data/utils/urls.dart';
 import '../widgets/task_item_widget.dart';
 
 class CompletedTaskListScreen extends StatefulWidget {
   const CompletedTaskListScreen({super.key});
 
   @override
-  State<CompletedTaskListScreen> createState() =>
-      _CompletedTaskListScreenState();
+  State<CompletedTaskListScreen> createState() => _CompletedTaskListScreenState();
 }
 
 class _CompletedTaskListScreenState extends State<CompletedTaskListScreen> {
-  bool _getTasksSummaryByStatusProgress =
-      false;
-
-  TaskCountByStatusModel?
-      taskCountByStatusModel;
-  TaskListByStatusModel?
-      completedTaskListModel;
+  final bool _getTasksSummaryByStatusProgress = false;
+  TaskCountByStatusModel? taskCountByStatusModel;
+  TaskListByStatusModel? completedTaskListModel;
   TaskModel? taskModel;
-
+  final GetTaskListController _getTaskListController= Get.find<GetTaskListController>();
 
   Future<void> _refreshAllData() async {
-    // await _getTaskCountByStatus(isFromRefresh: false);
     await _getCompletedTaskListView(isFromRefresh: false);
+    _getTaskListController.update();
   }
 
   @override
   void initState() {
     super.initState();
-    //_getTaskCountByStatus(isFromRefresh: true);
     _getCompletedTaskListView(isFromRefresh: true);
   }
 
   @override
   Widget build(BuildContext context) {
-    final textTheme =
-        Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       appBar: TMAppBar(textTheme: textTheme),
@@ -54,7 +47,6 @@ class _CompletedTaskListScreenState extends State<CompletedTaskListScreen> {
             padding: const EdgeInsets.all(8.0),
             child: Column(
               children: [
-                //_buildTasksSummaryByStatus(),
                 _buildTaskListView(),
               ],
             ),
@@ -94,64 +86,15 @@ class _CompletedTaskListScreenState extends State<CompletedTaskListScreen> {
     );
   }
 
-  // Widget _buildTasksSummaryByStatus() {
-  //   return Visibility(
-  //     visible: _getTasksSummaryByStatusProgress == false,
-  //     replacement: const Center(child: CircularProgressIndicator()),
-  //     child: SizedBox(
-  //       height: 100,
-  //       child: ListView.builder(
-  //         scrollDirection: Axis.horizontal,
-  //         itemCount: taskCountByStatusModel?.taskByStatusList?.length ?? 0,
-  //         itemBuilder: (context, index) {
-  //
-  //           final TaskCountModel model = taskCountByStatusModel!.taskByStatusList![index];
-  //           return TaskStatusSummaryCounterWidget(
-  //             count: model.sum.toString(),
-  //             title: model.sId ?? '',
-  //           );
-  //         },
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  //
-  // Future<void> _getTaskCountByStatus({bool isFromRefresh = false}) async {
-  //   if (!isFromRefresh) {
-  //     _getTasksSummaryByStatusProgress = true;
-  //     setState(() {});
-  //   }
-  //
-  //   NetworkResponse response = await NetworkCaller.getRequest(url: Urls.taskCountByStatusUrl);
-  //
-  //   if (response.isSuccess) {
-  //     taskCountByStatusModel = TaskCountByStatusModel.fromJson(response.responseData!);
-  //   } else {
-  //     showSnackBarMessage(context, response.errorMessage);
-  //   }
-  //   _getTasksSummaryByStatusProgress = false;
-  //   setState(() {});
-  // }
 
   Future<void> _getCompletedTaskListView({bool isFromRefresh = false}) async {
-    if (!isFromRefresh) {
-      _getTasksSummaryByStatusProgress = true;
-      setState(() {});
-    }
+    bool completedTaskListInProgress= await _getTaskListController.getTaskList(
+        isFromRefresh: isFromRefresh,
+        statusName: 'Completed');
 
-    NetworkResponse response = await NetworkCaller.getRequest(
-        url: Urls.taskListByStatusUrl('Completed'));
-
-    if (response.isSuccess) {
-      completedTaskListModel =
-          TaskListByStatusModel.fromJson(response.responseData!);
-    } else {
-      showSnackBarMessage(context,
-          response.errorMessage);
+    if(!completedTaskListInProgress){
+      showSnackBarMessage(context, _getTaskListController.errorMessage);
     }
-    _getTasksSummaryByStatusProgress =
-        false;
-    setState(() {});
-  }
+    _getTaskListController.update();
+    }
 }
