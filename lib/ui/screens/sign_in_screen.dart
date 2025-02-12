@@ -1,17 +1,13 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:task_manager_flutter/ui/controllers/sign_in_controller.dart';
+import 'package:task_manager_flutter/ui/screens/main_bottom_nav_screen.dart';
 import 'package:task_manager_flutter/ui/screens/sign_up_screen.dart';
-
-import '../../data/models/user_model.dart';
-import '../../data/services/network_caller.dart';
-import '../../data/utils/urls.dart';
-import '../controllers/auth_controller.dart';
+import 'package:task_manager_flutter/ui/widgets/snack_bar_message.dart';
 import '../utils/app_color.dart';
 import '../widgets/centered_circular_progress_indicator.dart';
 import '../widgets/screen_background.dart';
-import '../widgets/snack_bar_message.dart';
-import 'main_bottom_nav_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -26,7 +22,8 @@ class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController _emailTEController = TextEditingController();
   final TextEditingController _passwordTEController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  bool _signInProgress = false;
+  final bool _signInProgress = false;
+  final SignInController _signInController = Get.find<SignInController>();
 
   @override
   Widget build(BuildContext context) {
@@ -85,8 +82,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       children: [
                         TextButton(
                           onPressed: () {
-                           Get.offNamed(
-                               '/forgot-password/verify-email');
+                            Get.offNamed('/forgot-password/verify-email');
                           },
                           child: const Text('Forgot Password?'),
                         ),
@@ -110,27 +106,12 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   Future<void> _signIn() async {
-    _signInProgress = true;
-    setState(() {});
-    Map<String, dynamic> requestBody = {
-      "email": _emailTEController.text.trim(),
-      "password": _passwordTEController.text,
-    };
-    final NetworkResponse response =
-        await NetworkCaller.postRequest(url: Urls.loginUrl, body: requestBody);
-    if (response.isSuccess) {
-      String token = response.responseData!['token'];
-      UserModel userModel = UserModel.fromJson(response.responseData!['data']);
-      await AuthController.saveUserData(token, userModel);
-      Navigator.pushReplacementNamed(context, MainBottomNavScreen.name);
+    final bool isSuccess = await _signInController.signIn(
+        _emailTEController.text.trim(), _passwordTEController.text);
+    if (isSuccess) {
+      Get.offNamed(MainBottomNavScreen.name);
     } else {
-      _signInProgress = false;
-      setState(() {});
-      if (response.statusCode == 401) {
-        showSnackBarMessage(context, 'Email/Password is invalid! Try again.');
-      } else {
-        showSnackBarMessage(context, response.errorMessage);
-      }
+      showSnackBarMessage(context, _signInController.errorMessage!);
     }
   }
 

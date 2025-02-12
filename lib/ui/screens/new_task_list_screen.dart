@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_instance/get_instance.dart';
+import 'package:task_manager_flutter/ui/controllers/new_task_controller.dart';
 
 import '../../data/models/task_count_by_status_model.dart';
 import '../../data/models/task_count_model.dart';
@@ -24,6 +27,7 @@ class _NewTaskListScreenState extends State<NewTaskListScreen> {
   bool _getTaskCountByStatusInProgress = false;
   bool _getNewTaskListInProgress = false;
   TaskCountByStatusModel? taskCountByStatusModel;
+  final NewTaskController _newTaskController= Get.find<NewTaskController>();
   TaskListByStatusModel? newTaskListModel;
 
   Future<void> _refreshData() async {
@@ -134,20 +138,11 @@ class _NewTaskListScreenState extends State<NewTaskListScreen> {
     _getTaskCountByStatusInProgress = false;
     setState(() {});
   }
+Future<void>_getNewTaskList({required bool isformRefresh})async{
+    final bool isSuccess= await _newTaskController.getTaskList();
+    if(!isSuccess){
+      showSnackBarMessage(context, _newTaskController.errorMessage!);
+    }
+}
 
-  Future<void> _getNewTaskList({bool isformRefresh = false}) async {
-    if (!isformRefresh) {
-      _getNewTaskListInProgress = true;
-      setState(() {});
-    }
-    final NetworkResponse response =
-        await NetworkCaller.getRequest(url: Urls.taskListByStatusUrl('New'));
-    if (response.isSuccess) {
-      newTaskListModel = TaskListByStatusModel.fromJson(response.responseData!);
-    } else {
-      showSnackBarMessage(context, response.errorMessage);
-    }
-    _getNewTaskListInProgress = false;
-    setState(() {});
-  }
 }
